@@ -75,8 +75,7 @@ pred user_send_pre[m : Message] {
    (m.type in SDPOffer and m.dest = State.last_called and no State.calls[m.dest]) or
    (m.type in SDPAnswer and State.calls[m.dest] = SignallingStart) or
    (m.type in SDPCandidates and State.calls[m.dest] = SignallingOngoing) or
-   (m.type in Connect and State.calls[m.dest] = Answered and
-     State.last_answered = m.dest)
+   (m.type in Connect and State.calls[m.dest] = Answered and State.last_answered = m.dest)
   )
 }
 
@@ -88,8 +87,7 @@ pred user_recv_pre[m : Message] {
    (m.type in SDPOffer and no State.calls[m.source]) or
    (m.type in SDPAnswer and State.calls[m.source] = SignallingOffered) or
    (m.type in SDPCandidates and State.calls[m.source] = SignallingAnswered) or
-   (m.type in Connect 
-    and State.calls[m.source] = SignallingComplete)
+   (m.type in Connect and State.calls[m.source] = SignallingComplete)
   )
 }
 
@@ -101,6 +99,20 @@ pred user_recv_pre[m : Message] {
 pred user_send_post[m : Message] {
   State.network' = m and
   // FILL IN HERE
+  (
+   (m.type in SDPOffer and 
+    State.calls[m.source] = SignallingOffered) 
+   or
+   (m.type in SDPAnswer and 
+    State.calls[m.source] = SignallingAnswered) 
+   or
+   (m.type in SDPCandidates and 
+    State.calls[m.source] = SignallingOngoing) 
+   or
+   (m.type in Connect and 
+    State.calls[m.source] = Answered and 
+    State.calls[m.dest] = SignallingComplete)
+  )
 }
 
 // postcondition for the user receiving a message m
@@ -111,6 +123,22 @@ pred user_send_post[m : Message] {
 pred user_recv_post[m : Message] {
   no State.network' and
   // FILL IN HERE
+  (
+   (m.type in SDPOffer and 
+    State.calls[m.dest] = SignallingStart) 
+    or
+   (m.type in SDPAnswer and 
+    State.calls[m.dest] = SignallingOngoing) 
+    or
+   (m.type in SDPCandidates and 
+    State.calls[m.dest] = SignallingComplete and 
+    State.ringing = m.source) 
+    or
+   (m.type in Connect and 
+    State.calls[m.dest] = Connected and 
+    State.calls[m.source] = Connected and 
+    State.audio = m.source)
+  )
 }
 
 // the action of the attacker sending a message
