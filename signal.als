@@ -95,23 +95,23 @@ pred user_recv_pre[m : Message] {
 // s is the state the message is sent in and s' is the state
 // after sending the message
 //
-// No need to specify here that last_called and last_answered to not change
+// No need to specify here that last_called and last_ answered to not change
 pred user_send_post[m : Message] {
   State.network' = m and
   // FILL IN HERE
   (
    (m.type in SDPOffer and 
-    State.calls[m.source] = SignallingOffered) 
+    after State.calls[m.source] = SignallingOffered) 
    or
    (m.type in SDPAnswer and 
-    State.calls[m.source] = SignallingAnswered) 
+    after State.calls[m.source] = SignallingAnswered) 
    or
    (m.type in SDPCandidates and 
-    State.calls[m.source] = SignallingOngoing) 
+    after State.calls[m.source] = SignallingOngoing) 
    or
    (m.type in Connect and 
-    State.calls[m.source] = Answered and 
-    State.calls[m.dest] = SignallingComplete)
+    after State.calls[m.source] = Answered and 
+    after State.calls[m.dest] = SignallingComplete)
   )
 }
 
@@ -125,19 +125,19 @@ pred user_recv_post[m : Message] {
   // FILL IN HERE
   (
    (m.type in SDPOffer and 
-    State.calls[m.dest] = SignallingStart) 
+    after State.calls[m.dest] = SignallingStart) 
     or
    (m.type in SDPAnswer and 
-    State.calls[m.dest] = SignallingOngoing) 
+    after State.calls[m.dest] = SignallingOngoing) 
     or
    (m.type in SDPCandidates and 
-    State.calls[m.dest] = SignallingComplete and 
-    State.ringing = m.source) 
+    after State.calls[m.dest] = SignallingComplete and 
+    after State.ringing = m.source) 
     or
    (m.type in Connect and 
-    State.calls[m.dest] = Connected and 
-    State.calls[m.source] = Connected and 
-    State.audio = m.source)
+    after State.calls[m.dest] = Connected and 
+    after State.calls[m.source] = Connected and 
+    after State.audio = m.source)
   )
 }
 
@@ -233,6 +233,10 @@ fact {
 // participant or to answer a call from them
 assert no_bad_states {
  // FILL IN HERE
+ // NOTE: attacker in SignallingComplete CallState, 
+ // sends to user Connect message, 
+ // user is connected to attacker automatically 
+ // (reason: no check on user CallState)
 }
 
 // describe the vulnerability that this check identified
