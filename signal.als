@@ -73,9 +73,9 @@ pred user_send_pre[m : Message] {
   m.source in UserAddress and
   (
    (m.type in SDPOffer and m.dest = State.last_called and no State.calls[m.dest]) or
-   (m.type in SDPAnswer and State.calls[m.dest] = SignallingStart) or
-   (m.type in SDPCandidates and State.calls[m.dest] = SignallingOngoing) or
-   (m.type in Connect and State.calls[m.dest] = Answered and State.last_answered = m.dest)
+   (m.type in SDPAnswer and State.calls[m.dest] = SignallingOffered) or
+   (m.type in SDPCandidates and State.calls[m.dest] = SignallingAnswered) or
+   (m.type in Connect and State.calls[m.dest] = SignallingComplete and State.last_answered = m.dest)
   )
 }
 
@@ -85,9 +85,9 @@ pred user_recv_pre[m : Message] {
   m.dest in UserAddress and
   (
    (m.type in SDPOffer and no State.calls[m.source]) or
-   (m.type in SDPAnswer and State.calls[m.source] = SignallingOffered) or
-   (m.type in SDPCandidates and State.calls[m.source] = SignallingAnswered) or
-   (m.type in Connect and State.calls[m.source] = SignallingComplete)
+   (m.type in SDPAnswer and State.calls[m.dest] = SignallingOffered) or
+   (m.type in SDPCandidates and State.calls[m.dest] = SignallingAnswered) or
+   (m.type in Connect and State.calls[m.source] = Answered)
   )
 }
 
@@ -99,20 +99,6 @@ pred user_recv_pre[m : Message] {
 pred user_send_post[m : Message] {
   State.network' = m and
   // FILL IN HERE
-//  (
-//   (m.type in SDPOffer and 
-//    after State.calls[m.source] = SignallingOffered) 
-//   or
-//   (m.type in SDPAnswer and 
-//    after State.calls[m.source] = SignallingAnswered) 
-//   or
-//   (m.type in SDPCandidates and 
-//    after State.calls[m.source] = SignallingOngoing) 
-//   or
-//   (m.type in Connect and 
-//    after State.calls[m.source] = Answered and 
-//    after State.calls[m.dest] = SignallingComplete)
-//  )
   (
     (m.type in SDPOffer and after State.calls[m.source] = SignallingOffered) or
     (m.type in SDPAnswer and after State.calls[m.source] = SignallingAnswered) or
@@ -124,27 +110,10 @@ pred user_send_post[m : Message] {
 // postcondition for the user receiving a message m
 // s is the state before the message was received; s'
 // is hte state after the message was received
-//
 // No need to specify here that last_called and last_answered to not change
 pred user_recv_post[m : Message] {
   no State.network' and
   // FILL IN HERE
-//  (
-//   (m.type in SDPOffer and 
-//    after State.calls[m.dest] = SignallingStart) 
-//    or
-//   (m.type in SDPAnswer and 
-//    after State.calls[m.dest] = SignallingOngoing) 
-//    or
-//   (m.type in SDPCandidates and 
-//    after State.calls[m.dest] = SignallingComplete and 
-//    after State.ringing = m.source) 
-//    or
-//   (m.type in Connect and 
-//    after State.calls[m.dest] = Connected and 
-//    after State.calls[m.source] = Connected and 
-//    after State.audio = m.source)
-//  )
   (
     (m.type in SDPOffer and after State.calls[m.dest] = SignallingStart) or
     (m.type in SDPAnswer and after State.calls[m.dest] = SignallingOngoing) or
@@ -245,10 +214,7 @@ fact {
 // participant or to answer a call from them
 assert no_bad_states {
  // FILL IN HERE
- // NOTE: attacker in SignallingComplete CallState, 
- // sends to user Connect message, 
- // user is connected to attacker automatically 
- // (reason: no check on user CallState)
+ // NOTE: 
 }
 
 // describe the vulnerability that this check identified
@@ -256,6 +222,7 @@ assert no_bad_states {
 // implemented and then run this "check" to make sure the vulnerability
 // can be seen as described here.
 // FILL IN HERE
+// FIX: 
 
 // Choose a suitable bound for this check to show hwo the
 // vulnerability does not arise in your fixed protocol
