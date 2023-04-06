@@ -225,6 +225,26 @@ assert no_bad_states {
 // implemented and then run this "check" to make sure the vulnerability
 // can be seen as described here.
 // FILL IN HERE
+// FIX:
+// pred user_send_pre[m : Message] {
+//   m.source in UserAddress and
+//   (
+//    (m.type in SDPOffer and m.dest = State.last_called and no State.calls[m.dest]) or
+//    (m.type in SDPAnswer and State.calls[m.dest] = SignallingOffered) or
+//    (m.type in SDPCandidates and State.calls[m.dest] = SignallingAnswered) or
+//    (m.type in Connect and State.calls[m.dest] = SignallingComplete and State.last_answered = m.dest)
+//   )
+// }
+// pred user_recv_pre[m : Message] {
+//   m in State.network and
+//   m.dest in UserAddress and
+//   (
+//    (m.type in SDPOffer and no State.calls[m.source]) or
+//    (m.type in SDPAnswer and State.calls[m.dest] = SignallingOffered) or
+//    (m.type in SDPCandidates and State.calls[m.dest] = SignallingAnswered) or
+//    (m.type in Connect and State.calls[m.source] = Answered)
+//   )
+// }
 
 // Choose a suitable bound for this check to show hwo the
 // vulnerability does not arise in your fixed protocol
