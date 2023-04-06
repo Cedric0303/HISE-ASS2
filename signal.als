@@ -99,20 +99,6 @@ pred user_recv_pre[m : Message] {
 pred user_send_post[m : Message] {
   State.network' = m and
   // FILL IN HERE
-//  (
-//   (m.type in SDPOffer and 
-//    after State.calls[m.source] = SignallingOffered) 
-//   or
-//   (m.type in SDPAnswer and 
-//    after State.calls[m.source] = SignallingAnswered) 
-//   or
-//   (m.type in SDPCandidates and 
-//    after State.calls[m.source] = SignallingOngoing) 
-//   or
-//   (m.type in Connect and 
-//    after State.calls[m.source] = Answered and 
-//    after State.calls[m.dest] = SignallingComplete)
-//  )
   (
     (m.type in SDPOffer and after State.calls[m.source] = SignallingOffered) or
     (m.type in SDPAnswer and after State.calls[m.source] = SignallingAnswered) or
@@ -129,22 +115,6 @@ pred user_send_post[m : Message] {
 pred user_recv_post[m : Message] {
   no State.network' and
   // FILL IN HERE
-//  (
-//   (m.type in SDPOffer and 
-//    after State.calls[m.dest] = SignallingStart) 
-//    or
-//   (m.type in SDPAnswer and 
-//    after State.calls[m.dest] = SignallingOngoing) 
-//    or
-//   (m.type in SDPCandidates and 
-//    after State.calls[m.dest] = SignallingComplete and 
-//    after State.ringing = m.source) 
-//    or
-//   (m.type in Connect and 
-//    after State.calls[m.dest] = Connected and 
-//    after State.calls[m.source] = Connected and 
-//    after State.audio = m.source)
-//  )
   (
     (m.type in SDPOffer and after State.calls[m.dest] = SignallingStart) or
     (m.type in SDPAnswer and after State.calls[m.dest] = SignallingOngoing) or
@@ -244,11 +214,10 @@ fact {
 // to a participant but the User has not yet decided to call that
 // participant or to answer a call from them
 assert no_bad_states {
- // FILL IN HERE
- // NOTE: attacker in SignallingComplete CallState, 
- // sends to user Connect message, 
- // user is connected to attacker automatically 
- // (reason: no check on user CallState)
+  // FILL IN HERE
+  // no idea but i think the gist of it is something like this?
+  some m: Message, atker: AttackerAddress, user: UserAddress | 
+    user_msg and not user_answers and not user_calls => State.audio' = atker
 }
 
 // describe the vulnerability that this check identified
