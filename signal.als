@@ -216,8 +216,12 @@ fact {
 assert no_bad_states {
   // FILL IN HERE
   // no idea but i think the gist of it is something like this?
-  some m: Message, atker: AttackerAddress, user: UserAddress | 
-    user_msg and not user_answers and not user_calls => State.audio' = atker
+//  some m: Message, atker: AttackerAddress, user: UserAddress | 
+//    user_msg and not user_answers and not user_calls => State.audio' = atker
+  some attacker: AttackerAddress | 
+    not State.audio = attacker and
+    not State.last_called = attacker and
+    not State.last_answered = attacker
 }
 
 // describe the vulnerability that this check identified
