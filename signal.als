@@ -215,14 +215,24 @@ fact {
 // participant or to answer a call from them
 assert no_bad_states {
   // FILL IN HERE
-  // no idea but i think the gist of it is something like this?
-//  some m: Message, atker: AttackerAddress, user: UserAddress | 
-//    user_msg and not user_answers and not user_calls => State.audio' = atker
-  some attacker: AttackerAddress | 
-    not State.audio = attacker and
-    not State.last_called = attacker and
-    not State.last_answered = attacker
+  some u2: AttackerAddress |
+    always {
+      // user1 not yet call user2
+      (no State.ringing and State.calls[u2] != SignallingComplete) or
+      // user2 calling, user 1 not yet answer
+      (State.ringing = u2 and State.calls[u2] != Answered)
+      => after 
+      // bad state = user1 audio connected
+      (State.audio = u2 and State.calls[u2] = Connected)
+    }
+
+  // some attacker: AttackerAddress | 
+  //   not State.audio = attacker and
+  //   not State.last_called = attacker and
+  //   not State.last_answered = attacker
 }
+
+check no_bad_states
 
 // describe the vulnerability that this check identified
 // The markers will reverse the "fix" to your model that you
@@ -232,6 +242,7 @@ assert no_bad_states {
 // FIX:
 // pred user_send_pre[m : Message] {
 //   m.source in UserAddress and
+//   m.source != m.dest and
 //   (
 //    (m.type in SDPOffer and m.dest = State.last_called and no State.calls[m.dest]) or
 //    (m.type in SDPAnswer and State.calls[m.dest] = SignallingOffered) or
@@ -241,6 +252,7 @@ assert no_bad_states {
 // }
 // pred user_recv_pre[m : Message] {
 //   m in State.network and
+//   m.source != m.dest and
 //   m.dest in UserAddress and
 //   (
 //    (m.type in SDPOffer and no State.calls[m.source]) or
