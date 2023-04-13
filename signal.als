@@ -100,10 +100,10 @@ pred user_send_post[m : Message] {
   State.network' = m and
   // FILL IN HERE
   (
-    (m.type in SDPOffer and after State.calls[m.source] = SignallingOffered) or
-    (m.type in SDPAnswer and after State.calls[m.source] = SignallingAnswered) or
-    (m.type in SDPCandidates and after State.calls[m.source] = SignallingComplete) or
-    (m.type in Connect and State.calls[m.source] = Answered and after State.calls[m.source] = Connected and State.audio' = m.dest)
+    (m.type in SDPOffer and after State.calls[m.dest] = SignallingOffered) or
+    (m.type in SDPAnswer and after State.calls[m.dest] = SignallingAnswered) or
+    (m.type in SDPCandidates and after State.calls[m.dest] = SignallingComplete) or
+    (m.type in Connect and after State.calls[m.dest] = Connected and State.audio' = m.dest)
   )
 }
 
@@ -116,10 +116,10 @@ pred user_recv_post[m : Message] {
   no State.network' and
   // FILL IN HERE
   (
-    (m.type in SDPOffer and after State.calls[m.dest] = SignallingStart) or
-    (m.type in SDPAnswer and after State.calls[m.dest] = SignallingOngoing) or
-    (m.type in SDPCandidates and after State.calls[m.dest] = SignallingComplete and State.ringing' = m.source) or
-    (m.type in Connect and State.calls[m.dest] = SignallingComplete and after State.calls[m.dest] = Connected and State.audio' = m.source)
+    (m.type in SDPOffer and after State.calls[m.source] = SignallingStart) or
+    (m.type in SDPAnswer and after State.calls[m.source] = SignallingOngoing) or
+    (m.type in SDPCandidates and after State.calls[m.source] = SignallingComplete and State.ringing' = m.source) or
+    (m.type in Connect and after State.calls[m.source] = Connected and State.audio' = m.source)
   )
 }
 
