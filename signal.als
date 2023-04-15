@@ -99,6 +99,7 @@ pred user_recv_pre[m : Message] {
 pred user_send_post[m : Message] {
   State.network' = m and
   // FILL IN HERE
+  m.source != m.dest and
   (
     (m.type in SDPOffer and after State.calls[m.dest] = SignallingOffered) or
     (m.type in SDPAnswer and after State.calls[m.dest] = SignallingAnswered) or
@@ -115,6 +116,7 @@ pred user_send_post[m : Message] {
 pred user_recv_post[m : Message] {
   no State.network' and
   // FILL IN HERE
+  m.source != m.dest and
   (
     (m.type in SDPOffer and after State.calls[m.source] = SignallingStart) or
     (m.type in SDPAnswer and after State.calls[m.source] = SignallingOngoing) or
@@ -215,10 +217,12 @@ fact {
 // participant or to answer a call from them
 assert no_bad_states {
   // FILL IN HERE
-  some u2: AttackerAddress |
+  some u2: UserAddress |
     always {
+      (State.network.source != State.network.dest or no State.network) and
       // user1 not yet call user2
-      (no State.ringing and State.calls[u2] != SignallingComplete) or
+      (no State.ringing and 
+      State.calls[u2] != SignallingComplete) or
       // user2 calling, user 1 not yet answer
       (State.ringing = u2 and State.calls[u2] != Answered)
       => after 
@@ -242,6 +246,7 @@ check no_bad_states
 // FIX:
 // pred user_send_pre[m : Message] {
 //   m.source in UserAddress and
+//   m.dest in UserAddress and
 //   m.source != m.dest and
 //   (
 //    (m.type in SDPOffer and m.dest = State.last_called and no State.calls[m.dest]) or
@@ -250,10 +255,12 @@ check no_bad_states
 //    (m.type in Connect and State.calls[m.dest] = SignallingComplete and State.last_answered = m.dest)
 //   )
 // }
+
 // pred user_recv_pre[m : Message] {
 //   m in State.network and
-//   m.source != m.dest and
+//   m.source in UserAddress and
 //   m.dest in UserAddress and
+//   m.source != m.dest and
 //   (
 //    (m.type in SDPOffer and no State.calls[m.source]) or
 //    (m.type in SDPAnswer and State.calls[m.dest] = SignallingOffered) or
