@@ -99,12 +99,26 @@ pred user_recv_pre[m : Message] {
 pred user_send_post[m : Message] {
   State.network' = m and
   // FILL IN HERE
-  m.source != m.dest and
+  m.dest in AttackerAddress and
+  State.ringing' = State.ringing and
   (
-    (m.type in SDPOffer and after State.calls[m.dest] = SignallingOffered) or
-    (m.type in SDPAnswer and after State.calls[m.dest] = SignallingAnswered) or
-    (m.type in SDPCandidates and after State.calls[m.dest] = SignallingComplete) or
-    (m.type in Connect and after State.calls[m.dest] = Connected and State.audio' = m.dest)
+    (
+      m.type in SDPOffer and
+      State.calls'[m.dest] = SignallingOffered and
+      State.audio' = State.audio
+    ) or (
+      m.type in SDPAnswer and
+      State.calls'[m.dest] = SignallingAnswered and
+      State.audio' = State.audio
+    ) or (
+      m.type in SDPCandidates and
+      State.calls'[m.dest] = SignallingComplete and
+      State.audio' = State.audio
+    ) or (
+      m.type in Connect and
+      State.calls'[m.dest] = State.calls[m.dest] and
+      State.audio' = m.dest
+    )
   )
 }
 
@@ -116,12 +130,29 @@ pred user_send_post[m : Message] {
 pred user_recv_post[m : Message] {
   no State.network' and
   // FILL IN HERE
-  m.source != m.dest and
+  m.source in AttackerAddress and
   (
-    (m.type in SDPOffer and after State.calls[m.source] = SignallingStart) or
-    (m.type in SDPAnswer and after State.calls[m.source] = SignallingOngoing) or
-    (m.type in SDPCandidates and after State.calls[m.source] = SignallingComplete and State.ringing' = m.source) or
-    (m.type in Connect and after State.calls[m.source] = Connected and State.audio' = m.source)
+    (
+      m.type in SDPOffer and
+      State.calls'[m.source] = SignallingStart and
+      State.ringing' = State.ringing and
+      State.audio' = State.audio
+    ) or (
+      m.type in SDPAnswer and
+      State.calls'[m.source] = SignallingOngoing and
+      State.ringing' = State.ringing and
+      State.audio' = State.audio
+    ) or (
+      m.type in SDPCandidates and
+      State.calls'[m.source] = SignallingComplete and
+      State.ringing' = m.source and
+      State.audio' = State.audio
+    ) or (
+      m.type in Connect and
+      State.calls'[m.source] = State.calls[m.source] and
+      State.ringing' = State.ringing and
+      State.audio' = m.source
+    )
   )
 }
 
@@ -217,26 +248,30 @@ fact {
 // participant or to answer a call from them
 assert no_bad_states {
   // FILL IN HERE
-  some u2: UserAddress |
-    always {
-      (State.network.source != State.network.dest or no State.network) and
-      // user1 not yet call user2
-      (no State.ringing and 
-      State.calls[u2] != SignallingComplete) or
-      // user2 calling, user 1 not yet answer
-      (State.ringing = u2 and State.calls[u2] != Answered)
-      => after 
-      // bad state = user1 audio connected
-      (State.audio = u2 and State.calls[u2] = Connected)
-    }
+  always {
+    all a : Address |
+      State.audio = a =>
+      (
+        // User as caller
+        (State.last_called = a and State.calls[a] = SignallingComplete and State.network.type = SDPCandidates) or
+        // User as callee
+        (State.last_answered = a and State.calls[a] = Answered and State.network.type = Connect)
+      )
+  }
 
-  // some attacker: AttackerAddress | 
-  //   not State.audio = attacker and
-  //   not State.last_called = attacker and
-  //   not State.last_answered = attacker
+//  some u2: UserAddress |
+//    always {
+//      (State.network.source != State.network.dest or no State.network) and
+//      // user1 not yet call user2
+//      (no State.ringing and 
+//      State.calls[u2] != SignallingComplete) or
+//      // user2 calling, user 1 not yet answer
+//      (State.ringing = u2 and State.calls[u2] != Answered)
+//      => after 
+//      // bad state = user1 audio connected
+//      (State.audio = u2 and State.calls[u2] = Connected)
+//    }
 }
-
-check no_bad_states
 
 // describe the vulnerability that this check identified
 // The markers will reverse the "fix" to your model that you
