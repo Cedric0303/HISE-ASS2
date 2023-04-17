@@ -281,8 +281,6 @@ assert no_bad_states {
 // FIX:
 // pred user_send_pre[m : Message] {
 //   m.source in UserAddress and
-//   m.dest in UserAddress and
-//   m.source != m.dest and
 //   (
 //    (m.type in SDPOffer and m.dest = State.last_called and no State.calls[m.dest]) or
 //    (m.type in SDPAnswer and State.calls[m.dest] = SignallingOffered) or
@@ -294,8 +292,6 @@ assert no_bad_states {
 // pred user_recv_pre[m : Message] {
 //   m in State.network and
 //   m.source in UserAddress and
-//   m.dest in UserAddress and
-//   m.source != m.dest and
 //   (
 //    (m.type in SDPOffer and no State.calls[m.source]) or
 //    (m.type in SDPAnswer and State.calls[m.dest] = SignallingOffered) or
