@@ -253,9 +253,9 @@ assert no_bad_states {
       State.audio = a =>
       (
         // User as caller
-        (State.last_called = a and State.calls[a] = SignallingComplete and State.network.type = SDPCandidates) or
+        (State.last_called = a and State.calls[a] = SignallingComplete) or
         // User as callee
-        (State.last_answered = a and State.calls[a] = Answered and State.network.type = Connect)
+        (State.last_answered = a and State.calls[a] = Answered)
       )
   }
 
@@ -279,6 +279,9 @@ assert no_bad_states {
 // can be seen as described here.
 // FILL IN HERE
 // FIX:
+
+// SOLUTION 1
+
 // pred user_send_pre[m : Message] {
 //   m.source in UserAddress and
 //   (
@@ -299,6 +302,28 @@ assert no_bad_states {
 //    (m.type in Connect and State.calls[m.source] = Answered)
 //   )
 // }
+
+// SOLUTION 2
+
+//pred user_recv_pre[m : Message] {
+//  m in State.network and
+//  m.dest in UserAddress and
+//  (
+//   (m.type in SDPOffer and no State.calls[m.source]) or
+//   (m.type in SDPAnswer and State.calls[m.source] = SignallingOffered) or
+//   (m.type in SDPCandidates and State.calls[m.source] = SignallingAnswered) or
+//   (m.type in Connect and State.calls[m.source] = SignallingComplete and State.last_called = m.source)
+//  )
+//}
+//
+//pred user_calls {
+//  some callee : Address | State.last_called' = callee and
+//  State.network' = State.network and
+//  State.calls' = State.calls and
+//  State.last_answered' = State.last_answered and
+//  no State.audio and
+//  no State.ringing'
+//}
 
 // Choose a suitable bound for this check to show hwo the
 // vulnerability does not arise in your fixed protocol
