@@ -105,15 +105,15 @@ pred user_send_post[m : Message] {
     (
       m.type in SDPOffer and
       State.calls'[m.dest] = SignallingOffered and
-      State.audio' = State.audio
+      no State.audio'
     ) or (
       m.type in SDPAnswer and
       State.calls'[m.dest] = SignallingAnswered and
-      State.audio' = State.audio
+      no State.audio'
     ) or (
       m.type in SDPCandidates and
       State.calls'[m.dest] = SignallingComplete and
-      State.audio' = State.audio
+      no State.audio'
     ) or (
       m.type in Connect and
       State.calls'[m.dest] = State.calls[m.dest] and
@@ -135,22 +135,22 @@ pred user_recv_post[m : Message] {
     (
       m.type in SDPOffer and
       State.calls'[m.source] = SignallingStart and
-      State.ringing' = State.ringing and
-      State.audio' = State.audio
+      no State.ringing' and
+      no State.audio'
     ) or (
       m.type in SDPAnswer and
       State.calls'[m.source] = SignallingOngoing and
-      State.ringing' = State.ringing and
-      State.audio' = State.audio
+      no State.ringing' and
+      no State.audio'
     ) or (
       m.type in SDPCandidates and
       State.calls'[m.source] = SignallingComplete and
       State.ringing' = m.source and
-      State.audio' = State.audio
+      no State.audio'
     ) or (
       m.type in Connect and
       State.calls'[m.source] = State.calls[m.source] and
-      State.ringing' = State.ringing and
+      no State.ringing' and
       State.audio' = m.source
     )
   )
@@ -258,19 +258,6 @@ assert no_bad_states {
         (State.last_answered = a and State.calls[a] = Answered)
       )
   }
-
-//  some u2: UserAddress |
-//    always {
-//      (State.network.source != State.network.dest or no State.network) and
-//      // user1 not yet call user2
-//      (no State.ringing and 
-//      State.calls[u2] != SignallingComplete) or
-//      // user2 calling, user 1 not yet answer
-//      (State.ringing = u2 and State.calls[u2] != Answered)
-//      => after 
-//      // bad state = user1 audio connected
-//      (State.audio = u2 and State.calls[u2] = Connected)
-//    }
 }
 
 // describe the vulnerability that this check identified
@@ -284,46 +271,35 @@ assert no_bad_states {
 
 // pred user_send_pre[m : Message] {
 //   m.source in UserAddress and
+//   no State.audio and
 //   (
 //    (m.type in SDPOffer and m.dest = State.last_called and no State.calls[m.dest]) or
 //    (m.type in SDPAnswer and State.calls[m.dest] = SignallingOffered) or
 //    (m.type in SDPCandidates and State.calls[m.dest] = SignallingAnswered) or
-//    (m.type in Connect and State.calls[m.dest] = SignallingComplete and State.last_answered = m.dest)
+//    (m.type in Connect and State.calls[m.dest] = SignallingComplete)
 //   )
 // }
 
 // pred user_recv_pre[m : Message] {
-//   m in State.network and
-//   m.source in UserAddress and
-//   (
-//    (m.type in SDPOffer and no State.calls[m.source]) or
-//    (m.type in SDPAnswer and State.calls[m.dest] = SignallingOffered) or
-//    (m.type in SDPCandidates and State.calls[m.dest] = SignallingAnswered) or
-//    (m.type in Connect and State.calls[m.source] = Answered)
-//   )
-// }
-
-// SOLUTION 2
-
-//pred user_recv_pre[m : Message] {
 //  m in State.network and
 //  m.dest in UserAddress and
+//  no State.audio
 //  (
 //   (m.type in SDPOffer and no State.calls[m.source]) or
 //   (m.type in SDPAnswer and State.calls[m.source] = SignallingOffered) or
 //   (m.type in SDPCandidates and State.calls[m.source] = SignallingAnswered) or
-//   (m.type in Connect and State.calls[m.source] = SignallingComplete and State.last_called = m.source)
+//   (m.type in Connect and State.calls[m.source] = SignallingComplete)
 //  )
-//}
-//
-//pred user_calls {
+// }
+
+// pred user_calls {
 //  some callee : Address | State.last_called' = callee and
 //  State.network' = State.network and
 //  State.calls' = State.calls and
 //  State.last_answered' = State.last_answered and
 //  no State.audio and
 //  no State.ringing'
-//}
+// }
 
 // Choose a suitable bound for this check to show hwo the
 // vulnerability does not arise in your fixed protocol
