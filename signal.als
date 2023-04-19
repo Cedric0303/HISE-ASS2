@@ -104,19 +104,19 @@ pred user_send_post[m : Message] {
   (
     (
       m.type in SDPOffer and
-      State.calls'[m.dest] = SignallingOffered and
-      no State.audio'
+      State.calls' = State.calls ++ (m.dest -> SignallingOffered) and
+      State.audio' = State.audio
     ) or (
       m.type in SDPAnswer and
-      State.calls'[m.dest] = SignallingAnswered and
-      no State.audio'
+      State.calls' = State.calls ++ (m.dest -> SignallingAnswered) and
+      State.audio' = State.audio
     ) or (
       m.type in SDPCandidates and
-      State.calls'[m.dest] = SignallingComplete and
-      no State.audio'
+      State.calls' = State.calls ++ (m.dest -> SignallingComplete) and
+      State.audio' = State.audio
     ) or (
       m.type in Connect and
-      State.calls'[m.dest] = State.calls[m.dest] and
+      State.calls' = State.calls and
       State.audio' = m.dest
     )
   )
@@ -134,23 +134,23 @@ pred user_recv_post[m : Message] {
   (
     (
       m.type in SDPOffer and
-      State.calls'[m.source] = SignallingStart and
-      no State.ringing' and
-      no State.audio'
+      State.calls' = State.calls ++ (m.source -> SignallingStart) and
+      State.ringing' = State.ringing and
+      State.audio' = State.audio
     ) or (
       m.type in SDPAnswer and
-      State.calls'[m.source] = SignallingOngoing and
-      no State.ringing' and
-      no State.audio'
+      State.calls' = State.calls ++ (m.source -> SignallingOngoing) and
+      State.ringing' = State.ringing and
+      State.audio' = State.audio
     ) or (
       m.type in SDPCandidates and
-      State.calls'[m.source] = SignallingComplete and
+      State.calls' = State.calls ++ (m.source -> SignallingComplete) and
       State.ringing' = m.source and
-      no State.audio'
+      State.audio' = State.audio
     ) or (
       m.type in Connect and
-      State.calls'[m.source] = State.calls[m.source] and
-      no State.ringing' and
+      State.calls' = State.calls and
+      State.ringing' = State.ringing and
       State.audio' = m.source
     )
   )
@@ -267,39 +267,26 @@ assert no_bad_states {
 // FILL IN HERE
 // FIX:
 
-// SOLUTION 1
-
-// pred user_send_pre[m : Message] {
-//   m.source in UserAddress and
-//   no State.audio and
-//   (
-//    (m.type in SDPOffer and m.dest = State.last_called and no State.calls[m.dest]) or
-//    (m.type in SDPAnswer and State.calls[m.dest] = SignallingOffered) or
-//    (m.type in SDPCandidates and State.calls[m.dest] = SignallingAnswered) or
-//    (m.type in Connect and State.calls[m.dest] = SignallingComplete)
-//   )
-// }
-
-// pred user_recv_pre[m : Message] {
+//pred user_recv_pre[m : Message] {
 //  m in State.network and
 //  m.dest in UserAddress and
-//  no State.audio
 //  (
 //   (m.type in SDPOffer and no State.calls[m.source]) or
 //   (m.type in SDPAnswer and State.calls[m.source] = SignallingOffered) or
 //   (m.type in SDPCandidates and State.calls[m.source] = SignallingAnswered) or
-//   (m.type in Connect and State.calls[m.source] = SignallingComplete)
+//   (m.type in Connect and State.calls[m.source] = SignallingComplete and State.last_called = m.source)
 //  )
-// }
-
-// pred user_calls {
-//  some callee : Address | State.last_called' = callee and
+//}
+//
+//pred user_calls {
+//  some callee : Address | no State.last_called and
+//  State.last_called' = callee and
 //  State.network' = State.network and
 //  State.calls' = State.calls and
 //  State.last_answered' = State.last_answered and
-//  no State.audio and
+//  State.audio' = State.audio and
 //  no State.ringing'
-// }
+//}
 
 // Choose a suitable bound for this check to show hwo the
 // vulnerability does not arise in your fixed protocol
@@ -307,7 +294,7 @@ assert no_bad_states {
 // specifically, what guarantees you think are provided by this check.
 // FILL IN HERE
 // See the assignment handout for more details here.
-check no_bad_states // CHOOSE BOUND HERE
+check no_bad_states for 7 // CHOOSE BOUND HERE
 
 // Alloy "run" commands and predicate definitions to
 // showing successful execution of your (fixed) protocol
