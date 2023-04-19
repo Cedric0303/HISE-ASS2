@@ -265,36 +265,22 @@ assert no_bad_states {
 // implemented and then run this "check" to make sure the vulnerability
 // can be seen as described here.
 // FILL IN HERE
-// FIX:
-
-//pred user_recv_pre[m : Message] {
-//  m in State.network and
-//  m.dest in UserAddress and
-//  (
-//   (m.type in SDPOffer and no State.calls[m.source]) or
-//   (m.type in SDPAnswer and State.calls[m.source] = SignallingOffered) or
-//   (m.type in SDPCandidates and State.calls[m.source] = SignallingAnswered) or
-//   (m.type in Connect and State.calls[m.source] = SignallingComplete and State.last_called = m.source)
-//  )
-//}
-//
-//pred user_calls {
-//  some callee : Address | no State.last_called and
-//  State.last_called' = callee and
-//  State.network' = State.network and
-//  State.calls' = State.calls and
-//  State.last_answered' = State.last_answered and
-//  State.audio' = State.audio and
-//  no State.ringing'
-//}
+// EXPLANATION: 
 
 // Choose a suitable bound for this check to show hwo the
 // vulnerability does not arise in your fixed protocol
 // Justify / explain your choice of your bound and
 // specifically, what guarantees you think are provided by this check.
-// FILL IN HERE
 // See the assignment handout for more details here.
+// FILL IN HERE
 check no_bad_states for 7 // CHOOSE BOUND HERE
+// JUSTIFICATION:
+// bounds lower than 7 cannot reliably generate a counterexample of the fault 
+// in the protocol.
+// bounds higher than 7 is too computationally expensive.
+// 7 serves as a good middle ground which is able to reliably generate a 
+// counterexample while not taking forever to finish searching through the
+// possible combinations of variables.
 
 // Alloy "run" commands and predicate definitions to
 // showing successful execution of your (fixed) protocol
@@ -309,6 +295,27 @@ check no_bad_states for 7 // CHOOSE BOUND HERE
 
 // Describe how you fixed the model to remove the vulnerability
 // FILL IN HERE
+// FIX:
+pred user_recv_pre[m : Message] {
+ m in State.network and
+ m.dest in UserAddress and
+ (
+  (m.type in SDPOffer and no State.calls[m.source]) or
+  (m.type in SDPAnswer and State.calls[m.source] = SignallingOffered) or
+  (m.type in SDPCandidates and State.calls[m.source] = SignallingAnswered) or
+  (m.type in Connect and State.calls[m.source] = SignallingComplete and State.last_called = m.source)
+ )
+}
+
+pred user_calls {
+ some callee : Address | no State.last_called and
+ State.last_called' = callee and
+ State.network' = State.network and
+ State.calls' = State.calls and
+ State.last_answered' = State.last_answered and
+ State.audio' = State.audio and
+ no State.ringing'
+}
 // Your description should have enough detail to allow somebody
 // to "undo" (or "reverse") your fix so we can then see the vulnerability
 // in your protocol as you describe it in comments above
