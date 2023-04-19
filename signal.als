@@ -80,16 +80,16 @@ pred user_send_pre[m : Message] {
 }
 
 // precondition for the User to receive a message m in state s
-pred user_recv_pre[m : Message] {
-  m in State.network and
-  m.dest in UserAddress and
-  (
-   (m.type in SDPOffer and no State.calls[m.source]) or
-   (m.type in SDPAnswer and State.calls[m.source] = SignallingOffered) or
-   (m.type in SDPCandidates and State.calls[m.source] = SignallingAnswered) or
-   (m.type in Connect and State.calls[m.source] = SignallingComplete)
-  )
-}
+// pred user_recv_pre[m : Message] {
+//   m in State.network and
+//   m.dest in UserAddress and
+//   (
+//    (m.type in SDPOffer and no State.calls[m.source]) or
+//    (m.type in SDPAnswer and State.calls[m.source] = SignallingOffered) or
+//    (m.type in SDPCandidates and State.calls[m.source] = SignallingAnswered) or
+//    (m.type in Connect and State.calls[m.source] = SignallingComplete)
+//   )
+// }
 
 // postcondition for the user sending a message m.
 // s is the state the message is sent in and s' is the state
@@ -196,14 +196,14 @@ pred user_answers {
 // teh action of the user deciding to call another participant
 // doing so simply updates the last_called state and also cancels
 // any current "ringing" state
-pred user_calls {
-  some callee : Address | State.last_called' = callee and
-  State.network' = State.network and
-  State.calls' = State.calls and
-  State.last_answered' = State.last_answered and
-  State.audio' = State.audio and
-  no State.ringing'   // calling somebody else stops any current ringing call
-}
+// pred user_calls {
+//   some callee : Address | State.last_called' = callee and
+//   State.network' = State.network and
+//   State.calls' = State.calls and
+//   State.last_answered' = State.last_answered and
+//   State.audio' = State.audio and
+//   no State.ringing'   // calling somebody else stops any current ringing call
+// }
 
 pred state_unchanged {
   State.network' = State.network
@@ -284,7 +284,6 @@ check no_bad_states for 7 // CHOOSE BOUND HERE
 
 // Alloy "run" commands and predicate definitions to
 // showing successful execution of your (fixed) protocol
-// FILL IN HERE
 // These should include
 // (1) The user successfully initiates a call (i.e. is the caller), 
 // resulting in their audio being connected to the callee
@@ -292,6 +291,28 @@ check no_bad_states for 7 // CHOOSE BOUND HERE
 // execution trace, so that in one state their audio is connected 
 // to one participant and in another state it is connected to some
 // other participant
+// FILL IN HERE
+pred simulate_call {
+  some m: Message, u: UserAddress, a: AttackerAddress | 
+    init 
+      => after
+      (m.type = SDPOffer and 
+      m.source = u and 
+      m.dest = a
+      and State.network = m)
+        // this doesnt work not sure how to check subsequent messages
+        => after
+        (m.type = SDPAnswer and 
+        m.source = a and 
+        m.dest = u
+        and State.network = m)
+}
+
+pred simulate_answer {
+}
+
+run simulate_call
+run simulate_answer
 
 // Describe how you fixed the model to remove the vulnerability
 // FILL IN HERE
