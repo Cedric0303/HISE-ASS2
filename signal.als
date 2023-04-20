@@ -293,14 +293,17 @@ check no_bad_states for 7 // CHOOSE BOUND HERE
 // other participant
 // FILL IN HERE
 pred simulate_call {
-  some a: AttackerAddress | State.last_called = a and eventually State.audio = a
+  some a: AttackerAddress | 
+    State.last_called = a and eventually State.audio = a
 }
 
 pred simulate_answer {
+  some a: AttackerAddress | 
+    eventually State.last_answered = a and eventually State.audio = a
 }
 
-run simulate_call for 7
-run simulate_answer
+run simulate_call for 5
+run simulate_answer for 5
 
 // Describe how you fixed the model to remove the vulnerability
 // FILL IN HERE
