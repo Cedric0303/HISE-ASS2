@@ -293,25 +293,13 @@ check no_bad_states for 7 // CHOOSE BOUND HERE
 // other participant
 // FILL IN HERE
 pred simulate_call {
-  some m: Message, u: UserAddress, a: AttackerAddress | 
-    init 
-      => after
-      (m.type = SDPOffer and 
-      m.source = u and 
-      m.dest = a
-      and State.network = m)
-        // this doesnt work not sure how to check subsequent messages
-        => after
-        (m.type = SDPAnswer and 
-        m.source = a and 
-        m.dest = u
-        and State.network = m)
+  some a: AttackerAddress | State.last_called = a and eventually State.audio = a
 }
 
 pred simulate_answer {
 }
 
-run simulate_call
+run simulate_call for 7
 run simulate_answer
 
 // Describe how you fixed the model to remove the vulnerability
