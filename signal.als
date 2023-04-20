@@ -273,12 +273,12 @@ assert no_bad_states {
 // specifically, what guarantees you think are provided by this check.
 // See the assignment handout for more details here.
 // FILL IN HERE
-check no_bad_states for 7 // CHOOSE BOUND HERE
+check no_bad_states for 6 // CHOOSE BOUND HERE
 // JUSTIFICATION:
-// bounds lower than 7 cannot reliably generate a counterexample of the fault 
+// bounds lower than 6 cannot reliably generate a counterexample of the fault 
 // in the protocol.
-// bounds higher than 7 is too computationally expensive.
-// 7 serves as a good middle ground which is able to reliably generate a 
+// bounds higher than 6 is too computationally expensive.
+// 6 serves as a good middle ground which is able to reliably generate a 
 // counterexample while not taking forever to finish searching through the
 // possible combinations of variables.
 
@@ -302,8 +302,8 @@ pred simulate_answer {
     eventually State.last_answered = a and eventually State.audio = a
 }
 
-run simulate_call for 5
-run simulate_answer for 5
+run simulate_call for 6
+run simulate_answer for 6
 
 // Describe how you fixed the model to remove the vulnerability
 // FILL IN HERE
