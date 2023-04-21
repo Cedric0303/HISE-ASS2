@@ -181,17 +181,17 @@ pred user_msg {
 // doing so removes the "ringing" information from the state
 // and changes the recorded call state to Answered but otherwise
 // does not modify anything
-pred user_answers {
-  some caller : Address |
-  State.calls[caller] in SignallingComplete and
-  State.ringing = caller and 
-  State.audio' = State.audio and
-  no State.ringing' and
-  State.calls' = State.calls ++ (caller -> Answered) and
-  State.last_answered' = caller and
-  State.last_called' = State.last_called and
-  State.network' = State.network
-}
+//pred user_answers {
+//  some caller : Address |
+//  State.calls[caller] in SignallingComplete and
+//  State.ringing = caller and 
+//  State.audio' = State.audio and
+//  no State.ringing' and
+//  State.calls' = State.calls ++ (caller -> Answered) and
+//  State.last_answered' = caller and
+//  State.last_called' = State.last_called and
+//  State.network' = State.network
+//}
 
 // teh action of the user deciding to call another participant
 // doing so simply updates the last_called state and also cancels
@@ -292,8 +292,22 @@ check no_bad_states for 6 // CHOOSE BOUND HERE
 // to one participant and in another state it is connected to some
 // other participant
 // FILL IN HERE
+
+// User initiates call
 pred simulate_call {
-  some a: AttackerAddress | 
+  some a: AttackerAddress, m1, m2, m3, m4: Message |
+    m1.type = SDPOffer and
+    m1.source in UserAddress and
+    m1.dest = a and
+    m2.type = SDPAnswer and
+    m2.source = a and
+    m2.dest in UserAddress and
+    m3.type = SDPCandidates and
+    m3.source in UserAddress and
+    m3.dest = a and
+    m4.type = Connect and
+    m4.source = a and
+    m4.dest in UserAddress and
     State.last_called = a and eventually State.audio = a
 }
 
@@ -302,8 +316,44 @@ pred simulate_answer {
     eventually State.last_answered = a and eventually State.audio = a
 }
 
-run simulate_call for 6
+// User makes and recieves two separate calls, switching audio
+pred simulate_switch {
+  some a1, a2: AttackerAddress, m1, m2, m3, m4, m5, m6, m7, m8: Message |
+    a1 != a2 and
+
+    m1.type = SDPOffer and
+    m1.source in UserAddress and
+    m1.dest = a1 and
+    m2.type = SDPAnswer and
+    m2.source = a1 and
+    m2.dest in UserAddress and
+    m3.type = SDPCandidates and
+    m3.source in UserAddress and
+    m3.dest = a1 and
+    m4.type = Connect and
+    m4.source = a1 and
+    m4.dest in UserAddress and
+
+    m5.type = SDPOffer and
+    m5.source = a2 and
+    m5.dest in UserAddress and
+    m6.type = SDPAnswer and
+    m6.source in UserAddress and
+    m6.dest = a2 and
+    m7.type = SDPCandidates and
+    m7.source = a2 and
+    m7.dest in UserAddress and
+    m8.type = Connect and
+    m8.source in UserAddress and
+    m8.dest = a2 and
+
+    eventually (State.last_called = a1 and State.audio = a1) and
+    eventually (State.last_answered = a2 and State.audio = a2)
+}
+
+run simulate_call for 4
 run simulate_answer for 6
+run simulate_switch for 15
 
 // Describe how you fixed the model to remove the vulnerability
 // FILL IN HERE
@@ -319,15 +369,26 @@ pred user_recv_pre[m : Message] {
  )
 }
 
-pred user_calls {
- some callee : Address | no State.last_called and
- State.last_called' = callee and
- State.network' = State.network and
- State.calls' = State.calls and
- State.last_answered' = State.last_answered and
- State.audio' = State.audio and
- no State.ringing'
+pred user_answers {
+  some caller : Address |
+  State.calls[caller] in SignallingComplete and
+  State.ringing = caller and 
+  State.audio' = none and
+  no State.ringing' and
+  State.calls' = State.calls ++ (caller -> Answered) and
+  State.last_answered' = caller and
+  State.last_called' = State.last_called and
+  State.network' = State.network
 }
+
+ pred user_calls {
+   some callee : Address | State.last_called' = callee and
+   State.network' = State.network and
+   State.calls' = State.calls and
+   State.last_answered' = State.last_answered and
+   State.audio' = none and
+   no State.ringing'
+ }
 // Your description should have enough detail to allow somebody
 // to "undo" (or "reverse") your fix so we can then see the vulnerability
 // in your protocol as you describe it in comments above
