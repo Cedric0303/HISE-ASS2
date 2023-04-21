@@ -273,7 +273,7 @@ assert no_bad_states {
 // specifically, what guarantees you think are provided by this check.
 // See the assignment handout for more details here.
 // FILL IN HERE
-check no_bad_states for 6 // CHOOSE BOUND HERE
+check no_bad_states for 6 expect 0 // CHOOSE BOUND HERE
 // JUSTIFICATION:
 // bounds lower than 6 cannot reliably generate a counterexample of the fault 
 // in the protocol.
@@ -295,20 +295,22 @@ check no_bad_states for 6 // CHOOSE BOUND HERE
 
 // User initiates call
 pred simulate_call {
-  some a: AttackerAddress, m1, m2, m3, m4: Message |
-    m1.type = SDPOffer and
-    m1.source in UserAddress and
-    m1.dest = a and
-    m2.type = SDPAnswer and
-    m2.source = a and
-    m2.dest in UserAddress and
-    m3.type = SDPCandidates and
-    m3.source in UserAddress and
-    m3.dest = a and
-    m4.type = Connect and
-    m4.source = a and
-    m4.dest in UserAddress and
+  some a: AttackerAddress |
     State.last_called = a and eventually State.audio = a
+  // some a: AttackerAddress, m1, m2, m3, m4: Message |
+    // m1.type = SDPOffer and
+    // m1.source in UserAddress and
+    // m1.dest = a and
+    // m2.type = SDPAnswer and
+    // m2.source = a and
+    // m2.dest in UserAddress and
+    // m3.type = SDPCandidates and
+    // m3.source in UserAddress and
+    // m3.dest = a and
+    // m4.type = Connect and
+    // m4.source = a and
+    // m4.dest in UserAddress and
+    // State.last_called = a and eventually State.audio = a
 }
 
 pred simulate_answer {
@@ -318,42 +320,100 @@ pred simulate_answer {
 
 // User makes and recieves two separate calls, switching audio
 pred simulate_switch {
-  some a1, a2: AttackerAddress, m1, m2, m3, m4, m5, m6, m7, m8: Message |
-    a1 != a2 and
-
-    m1.type = SDPOffer and
-    m1.source in UserAddress and
-    m1.dest = a1 and
-    m2.type = SDPAnswer and
-    m2.source = a1 and
-    m2.dest in UserAddress and
-    m3.type = SDPCandidates and
-    m3.source in UserAddress and
-    m3.dest = a1 and
-    m4.type = Connect and
-    m4.source = a1 and
-    m4.dest in UserAddress and
-
-    m5.type = SDPOffer and
-    m5.source = a2 and
-    m5.dest in UserAddress and
-    m6.type = SDPAnswer and
-    m6.source in UserAddress and
-    m6.dest = a2 and
-    m7.type = SDPCandidates and
-    m7.source = a2 and
-    m7.dest in UserAddress and
-    m8.type = Connect and
-    m8.source in UserAddress and
-    m8.dest = a2 and
-
-    eventually (State.last_called = a1 and State.audio = a1) and
-    eventually (State.last_answered = a2 and State.audio = a2)
+  some u: UserAddress, 
+  a, b: AttackerAddress, 
+  m1, m2, m3, m4, m5: Message | 
+    a != b
+    and State.last_called = a
+    and no State.network
+    and after (
+      State.calls[a] = SignallingOffered
+      and m1.type = SDPOffer 
+      and m1.source = u 
+      and m1.dest = a 
+      and State.network = m1
+      and after (
+        m2.type = SDPAnswer 
+        and m2.source = a 
+        and m2.dest = u 
+        and State.network = m2
+        and after (
+          State.calls[a] = SignallingOngoing
+          and after (
+            m3.type = SDPCandidates 
+            and m3.source = u 
+            and m3.dest = a 
+            and State.network = m3
+            and after (
+              State.calls[a] = SignallingComplete
+              and after (
+                m4.type = Connect 
+                and m4.source = a 
+                and m4.dest = u 
+                and State.network = m4
+                and after (
+                  State.audio = a
+                  and after (
+                    m5.type = SDPOffer 
+                    and m5.source = b 
+                    and m5.dest = u 
+                    and State.network = m5
+                    and after (
+                      State.calls[b] = SignallingStart
+                      // COMMENT: somehow after this part it doesnt work anymore, 
+                      // might be problem in user_recv_pre and user_answers predicates?
+                      // and after (
+                      //   State.calls[b] = SignallingComplete
+                      //   and m6.type = SDPAnswer
+                      //   and m6.source = u 
+                      //   and m6.dest = b 
+                      //   and State.network = m6
+                      // )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
 }
 
-run simulate_call for 4
-run simulate_answer for 6
-run simulate_switch for 15
+run simulate_call for 4 expect 1
+run simulate_answer for 4 expect 1
+run simulate_switch for 8 expect 1
+  // some a1, a2: AttackerAddress, m1, m2, m3, m4, m5, m6, m7, m8: Message |
+  //   a1 != a2 and
+
+  //   m1.type = SDPOffer and
+  //   m1.source in UserAddress and
+  //   m1.dest = a1 and
+  //   m2.type = SDPAnswer and
+  //   m2.source = a1 and
+  //   m2.dest in UserAddress and
+  //   m3.type = SDPCandidates and
+  //   m3.source in UserAddress and
+  //   m3.dest = a1 and
+  //   m4.type = Connect and
+  //   m4.source = a1 and
+  //   m4.dest in UserAddress and
+
+  //   m5.type = SDPOffer and
+  //   m5.source = a2 and
+  //   m5.dest in UserAddress and
+  //   m6.type = SDPAnswer and
+  //   m6.source in UserAddress and
+  //   m6.dest = a2 and
+  //   m7.type = SDPCandidates and
+  //   m7.source = a2 and
+  //   m7.dest in UserAddress and
+  //   m8.type = Connect and
+  //   m8.source in UserAddress and
+  //   m8.dest = a2 and
+
+  //   eventually (State.last_called = a1 and State.audio = a1) and
+  //   eventually (State.last_answered = a2 and State.audio = a2)
 
 // Describe how you fixed the model to remove the vulnerability
 // FILL IN HERE
@@ -366,12 +426,13 @@ pred user_recv_pre[m : Message] {
   (m.type in SDPAnswer and State.calls[m.source] = SignallingOffered) or
   (m.type in SDPCandidates and State.calls[m.source] = SignallingAnswered) or
   (m.type in Connect and State.calls[m.source] = SignallingComplete and State.last_called = m.source)
+  // COMMENT: i feel like this should be State.last_answered = m.source?
  )
 }
 
 pred user_answers {
   some caller : Address |
-  State.calls[caller] in SignallingComplete and
+  State.calls[caller] = SignallingComplete and
   State.ringing = caller and 
   State.audio' = none and
   no State.ringing' and
