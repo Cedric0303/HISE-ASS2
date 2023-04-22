@@ -368,14 +368,14 @@ pred user_answers {
   State.network' = State.network
 }
 
- pred user_calls {
-   some callee : Address | State.last_called' = callee and
-   State.network' = State.network and
-   State.calls' = State.calls and
-   State.last_answered' = State.last_answered and
-   State.audio' = none and
-   no State.ringing'
- }
+pred user_calls {
+  some callee : Address | State.last_called' = callee and
+  State.network' = State.network and
+  State.calls' = State.calls and
+  State.last_answered' = State.last_answered and
+  State.audio' = none and
+  no State.ringing'
+}
 // Your description should have enough detail to allow somebody
 // to "undo" (or "reverse") your fix so we can then see the vulnerability
 // in your protocol as you describe it in comments above
