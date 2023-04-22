@@ -80,16 +80,16 @@ pred user_send_pre[m : Message] {
 }
 
 // precondition for the User to receive a message m in state s
-// pred user_recv_pre[m : Message] {
-//   m in State.network and
-//   m.dest in UserAddress and
-//   (
-//    (m.type in SDPOffer and no State.calls[m.source]) or
-//    (m.type in SDPAnswer and State.calls[m.source] = SignallingOffered) or
-//    (m.type in SDPCandidates and State.calls[m.source] = SignallingAnswered) or
-//    (m.type in Connect and State.calls[m.source] = SignallingComplete)
-//   )
-// }
+pred user_recv_pre[m : Message] {
+  m in State.network and
+  m.dest in UserAddress and
+  (
+   (m.type in SDPOffer and no State.calls[m.source]) or
+   (m.type in SDPAnswer and State.calls[m.source] = SignallingOffered) or
+   (m.type in SDPCandidates and State.calls[m.source] = SignallingAnswered) or
+   (m.type in Connect and State.calls[m.source] = SignallingComplete)
+  )
+}
 
 // postcondition for the user sending a message m.
 // s is the state the message is sent in and s' is the state
@@ -181,29 +181,29 @@ pred user_msg {
 // doing so removes the "ringing" information from the state
 // and changes the recorded call state to Answered but otherwise
 // does not modify anything
-//pred user_answers {
-//  some caller : Address |
-//  State.calls[caller] in SignallingComplete and
-//  State.ringing = caller and 
-//  State.audio' = State.audio and
-//  no State.ringing' and
-//  State.calls' = State.calls ++ (caller -> Answered) and
-//  State.last_answered' = caller and
-//  State.last_called' = State.last_called and
-//  State.network' = State.network
-//}
+pred user_answers {
+ some caller : Address |
+ State.calls[caller] in SignallingComplete and
+ State.ringing = caller and 
+ State.audio' = State.audio and
+ no State.ringing' and
+ State.calls' = State.calls ++ (caller -> Answered) and
+ State.last_answered' = caller and
+ State.last_called' = State.last_called and
+ State.network' = State.network
+}
 
 // teh action of the user deciding to call another participant
 // doing so simply updates the last_called state and also cancels
 // any current "ringing" state
-// pred user_calls {
-//   some callee : Address | State.last_called' = callee and
-//   State.network' = State.network and
-//   State.calls' = State.calls and
-//   State.last_answered' = State.last_answered and
-//   State.audio' = State.audio and
-//   no State.ringing'   // calling somebody else stops any current ringing call
-// }
+pred user_calls {
+  some callee : Address | State.last_called' = callee and
+  State.network' = State.network and
+  State.calls' = State.calls and
+  State.last_answered' = State.last_answered and
+  State.audio' = State.audio and
+  no State.ringing'   // calling somebody else stops any current ringing call
+}
 
 pred state_unchanged {
   State.network' = State.network
@@ -240,8 +240,6 @@ fact {
 fact {
   always state_transition
 }
-
-
 
 // a  bad state is one in which the User's audio is connected
 // to a participant but the User has not yet decided to call that
@@ -345,37 +343,45 @@ run simulate_switch for 8 but 14..14 steps
 // Describe how you fixed the model to remove the vulnerability
 // FILL IN HERE
 // FIX:
-pred user_recv_pre[m : Message] {
- m in State.network and
- m.dest in UserAddress and
- (
-  (m.type in SDPOffer and no State.calls[m.source]) or
-  (m.type in SDPAnswer and State.calls[m.source] = SignallingOffered) or
-  (m.type in SDPCandidates and State.calls[m.source] = SignallingAnswered) or
-  (m.type in Connect and State.calls[m.source] = SignallingComplete and State.last_called = m.source)
- )
-}
+// pred user_recv_pre[m : Message] {
+//  m in State.network and
+//  m.dest in UserAddress and
+//  (
+//   (m.type in SDPOffer and no State.calls[m.source]) or
+//   (m.type in SDPAnswer and State.calls[m.source] = SignallingOffered) or
+//   (m.type in SDPCandidates and State.calls[m.source] = SignallingAnswered) or
+//   (m.type in Connect and State.calls[m.source] = SignallingComplete and State.last_called = m.source)
+//  )
+// }
 
-pred user_answers {
-  some caller : Address |
-  State.calls[caller] = SignallingComplete and
-  State.ringing = caller and 
-  State.audio' = none and
-  no State.ringing' and
-  State.calls' = State.calls ++ (caller -> Answered) and
-  State.last_answered' = caller and
-  State.last_called' = State.last_called and
-  State.network' = State.network
-}
+// pred user_answers {
+//   some caller : Address |
+//   State.calls[caller] = SignallingComplete and
+//   State.ringing = caller and 
+//   State.audio' = none and
+//   no State.ringing' and
+//   State.calls' = State.calls ++ (caller -> Answered) and
+//   State.last_answered' = caller and
+//   State.last_called' = State.last_called and
+//   State.network' = State.network
+// }
 
-pred user_calls {
-  some callee : Address | State.last_called' = callee and
-  State.network' = State.network and
-  State.calls' = State.calls and
-  State.last_answered' = State.last_answered and
-  State.audio' = none and
-  no State.ringing'
-}
+// pred user_calls {
+//   some callee : Address | State.last_called' = callee and
+//   State.network' = State.network and
+//   State.calls' = State.calls and
+//   State.last_answered' = State.last_answered and
+//   State.audio' = none and
+//   no State.ringing'
+// }
+
 // Your description should have enough detail to allow somebody
 // to "undo" (or "reverse") your fix so we can then see the vulnerability
 // in your protocol as you describe it in comments above
+// DESCRIPTION: 
+// to undo the fix, comment out the above fixed predicates:
+// user_recv_pre, user_answers and user_calls, 
+// uncomment the original predicates witht the same name further above,
+// and run the no_bad_states check.
+// a counterexample will be found in the original predicates, 
+// whereas none will be found in the fixed predicates.
