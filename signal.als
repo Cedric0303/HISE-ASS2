@@ -1,6 +1,6 @@
 
-// Names of you and your partner:
-// Jun Li Chen, Emmanuel Pinca
+// Names and ids of you and your partner:
+// Jun Li Chen 1043258, Emmanuel Pinca 1080088
 
 // the type of addresses
 abstract sig Address {}
@@ -330,8 +330,12 @@ pred simulate_switch {
     m8.source in UserAddress and
     m8.dest = a2 and
 
-    eventually (State.last_called = a1 and State.last_answered != a1 and State.audio = a1) and
-    eventually (State.last_answered = a2 and State.last_called != a2 and State.audio = a2)
+    eventually (
+      State.last_called = a1 and State.last_answered != a1 and State.audio = a1
+    ) 
+    and eventually (
+      State.last_answered = a2 and State.last_called != a2 and State.audio = a2
+    )
 }
 
 run simulate_call for 4 expect 1
