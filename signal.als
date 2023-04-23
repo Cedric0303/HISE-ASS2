@@ -253,7 +253,7 @@ assert no_bad_states {
         // User as callee
         (State.calls[a] = Answered) or
         // User as caller
-        (State.calls[a] = SignallingComplete and once State.calls[a] = SignallingOffered)
+        (State.calls[a] = SignallingComplete and State.last_called = a)
       )
   }
 }
@@ -348,23 +348,32 @@ run simulate_switch for 8 but 14..14 steps
 // Describe how you fixed the model to remove the vulnerability
 // FILL IN HERE
 // FIX:
-// pred user_recv_pre[m : Message] {
+//pred user_recv_pre[m : Message] {
 //  m in State.network and
 //  m.dest in UserAddress and
 //  (
 //   (m.type in SDPOffer and no State.calls[m.source]) or
 //   (m.type in SDPAnswer and State.calls[m.source] = SignallingOffered) or
 //   (m.type in SDPCandidates and State.calls[m.source] = SignallingAnswered) or
-//   (m.type in Connect and State.calls[m.source] = SignallingComplete and once State.calls[m.source] = SignallingOffered)
+//   (m.type in Connect and State.calls[m.source] = SignallingComplete and State.last_called = m.source)
 //  )
-// }
+//}
+//
+//pred user_calls {
+//  some callee : Address | State.last_called' = callee and
+//  State.network' = State.network and
+//  State.calls' = State.calls and
+//  State.last_answered' = State.last_answered and
+//  State.audio' = none and
+//  no State.ringing'
+//}
 
 // Your description should have enough detail to allow somebody
 // to "undo" (or "reverse") your fix so we can then see the vulnerability
 // in your protocol as you describe it in comments above
 // DESCRIPTION: 
 // to undo the fix, comment out the above fixed predicates:
-// user_recv_pre,
+// user_recv_pre, user_calls
 // uncomment the original predicates witht the same name further above,
 // and run the no_bad_states check.
 // a counterexample will be found in the original predicates, 
