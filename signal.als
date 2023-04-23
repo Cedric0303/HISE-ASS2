@@ -250,10 +250,10 @@ assert no_bad_states {
     all a : Address |
       State.audio = a =>
       (
-        // User as callee
-        (State.calls[a] = Answered) or
         // User as caller
-        (State.calls[a] = SignallingComplete and State.last_called = a)
+        (State.last_called = a and State.calls[a] = SignallingComplete) or
+        // User as callee
+        (State.last_answered = a and State.calls[a] = Answered)
       )
   }
 }
