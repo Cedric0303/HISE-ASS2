@@ -250,10 +250,10 @@ assert no_bad_states {
     all a : Address |
       State.audio = a =>
       (
-        // User as caller
-        (State.last_called = a and State.calls[a] = SignallingComplete) or
         // User as callee
-        (State.last_answered = a and State.calls[a] = Answered)
+        (State.calls[a] = Answered) or
+        // User as caller
+        (State.calls[a] = SignallingComplete and once State.calls[a] = SignallingOffered)
       )
   }
 }
@@ -262,8 +262,13 @@ assert no_bad_states {
 // The markers will reverse the "fix" to your model that you
 // implemented and then run this "check" to make sure the vulnerability
 // can be seen as described here.
-// FILL IN HERE
-// EXPLANATION: 
+// VULNERABILITY:
+// When an attacker calls the user, they can force the user to connect to their
+// audio without the user answering. This vulnerability arises when the user
+// as the callee reaches the SignallingComplete state and the attacker sends
+// a Connect message afterwards. Since there is no distinction between the
+// SignallingComplete state as a caller or callee, the user receives the
+// Connect message as if it were a caller.
 
 // Choose a suitable bound for this check to show hwo the
 // vulnerability does not arise in your fixed protocol
@@ -350,29 +355,8 @@ run simulate_switch for 8 but 14..14 steps
 //   (m.type in SDPOffer and no State.calls[m.source]) or
 //   (m.type in SDPAnswer and State.calls[m.source] = SignallingOffered) or
 //   (m.type in SDPCandidates and State.calls[m.source] = SignallingAnswered) or
-//   (m.type in Connect and State.calls[m.source] = SignallingComplete and State.last_called = m.source)
+//   (m.type in Connect and State.calls[m.source] = SignallingComplete and once State.calls[m.source] = SignallingOffered)
 //  )
-// }
-
-// pred user_answers {
-//   some caller : Address |
-//   State.calls[caller] = SignallingComplete and
-//   State.ringing = caller and 
-//   State.audio' = none and
-//   no State.ringing' and
-//   State.calls' = State.calls ++ (caller -> Answered) and
-//   State.last_answered' = caller and
-//   State.last_called' = State.last_called and
-//   State.network' = State.network
-// }
-
-// pred user_calls {
-//   some callee : Address | State.last_called' = callee and
-//   State.network' = State.network and
-//   State.calls' = State.calls and
-//   State.last_answered' = State.last_answered and
-//   State.audio' = none and
-//   no State.ringing'
 // }
 
 // Your description should have enough detail to allow somebody
@@ -380,7 +364,7 @@ run simulate_switch for 8 but 14..14 steps
 // in your protocol as you describe it in comments above
 // DESCRIPTION: 
 // to undo the fix, comment out the above fixed predicates:
-// user_recv_pre, user_answers and user_calls, 
+// user_recv_pre,
 // uncomment the original predicates witht the same name further above,
 // and run the no_bad_states check.
 // a counterexample will be found in the original predicates, 
