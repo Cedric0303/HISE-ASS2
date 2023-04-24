@@ -276,7 +276,7 @@ assert no_bad_states {
 // specifically, what guarantees you think are provided by this check.
 // See the assignment handout for more details here.
 // FILL IN HERE
-check no_bad_states for 4 but 1 AttackerAddress, 8..8 steps // CHOOSE BOUND HERE
+check no_bad_states for 4 but 1 AttackerAddress, 8..8 steps expect 0 // CHOOSE BOUND HERE
 // JUSTIFICATION:
 // Having less than four top-level signatures cannot generate a counterexample
 // of the assertion. This value only affects the number of messages and
