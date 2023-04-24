@@ -391,6 +391,9 @@ run simulate_switch for 8 but 14..14 steps
 //
 // The fix ensures Connect messages are only received when the user has
 // recently decided to call an address (State.last_called = m.source) and
-// clears the audio when another call is made (State.audio' = none).
-// This prevents audio from connecting to anyone not called and stops
-// any connected audio when another call is being made by the user.
+// clears the audio when another call is made (State.audio' = none). This
+// prevents audio from connecting to anyone not called and stops any connected
+// audio when another call is being made by the user. However this "minimal"
+// fix assumes the audio does not have to be connected immediately after
+// answering call and can connect audio to another call before finally
+// connecting audio to the prior call.
