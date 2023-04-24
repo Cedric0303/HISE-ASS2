@@ -276,14 +276,19 @@ assert no_bad_states {
 // specifically, what guarantees you think are provided by this check.
 // See the assignment handout for more details here.
 // FILL IN HERE
-check no_bad_states for 6 expect 0 // CHOOSE BOUND HERE
+check no_bad_states for 4 but 1 AttackerAddress, 8..8 steps // CHOOSE BOUND HERE
 // JUSTIFICATION:
-// bounds lower than 6 cannot reliably generate a counterexample of the fault 
-// in the protocol.
-// bounds higher than 6 is too computationally expensive.
-// 6 serves as a good middle ground which is able to reliably generate a 
-// counterexample while not taking forever to finish searching through the
-// possible combinations of variables.
+// Having less than four top-level signatures cannot generate a counterexample
+// of the assertion. This value only affects the number of messages and
+// attackers simulated within the model, with the latter specified to only have
+// a single instance. Only a single attacker is necessary to accomplish the
+// attack as no attackers can modify the user's call state with other addresses
+// and four messages will be created as it is the minimum needed to
+// successfully connect audio (SDPOffer, SDPAnswer, SDPCandidates, Connect).
+// Eight steps are necessary to check no_bad_states with a single connection. 
+// As call states cannot be skipped, this is the exact number of steps required
+// to connect audio without repeating messages that cannot be sent/read or
+// executing the state_unchanged predicate.
 
 // Alloy "run" commands and predicate definitions to
 // showing successful execution of your (fixed) protocol
@@ -296,13 +301,13 @@ check no_bad_states for 6 expect 0 // CHOOSE BOUND HERE
 // other participant
 // FILL IN HERE
 
-// User initiates call
+// User initiating call predicate
 pred simulate_call {
   some a: AttackerAddress |
     State.last_called = a and eventually State.audio = a
 }
 
-// User makes and recieves two separate calls, switching audio
+// User making and receiving call predicate
 pred simulate_switch {
   some a1, a2: AttackerAddress, m1, m2, m3, m4, m5, m6, m7, m8: Message |
     a1 != a2 and
@@ -341,12 +346,16 @@ pred simulate_switch {
     )
 }
 
-run simulate_call for 4 expect 1
+// User initiates call, resulting with audio connected to callee (Task 2, 3.1)
+run simulate_call for 4
 
+// User makes and recieves two separate calls, switching audio (Task 2, 3.2)
+// Assumes audio does not have to be connected immediately after answering call.
 run simulate_switch for 8 but 14..14 steps
 
 // Describe how you fixed the model to remove the vulnerability
 // FILL IN HERE
+
 // FIX:
 // pred user_recv_pre[m : Message] {
 //  m in State.network and
@@ -355,7 +364,7 @@ run simulate_switch for 8 but 14..14 steps
 //   (m.type in SDPOffer and no State.calls[m.source]) or
 //   (m.type in SDPAnswer and State.calls[m.source] = SignallingOffered) or
 //   (m.type in SDPCandidates and State.calls[m.source] = SignallingAnswered) or
-//   (m.type in Connect and State.calls[m.source] = SignallingComplete and State.last_called = m.source)
+//   (m.type in Connect and State.calls[m.source] = SignallingComplete and State.last_called = m.source) // Change #1
 //  )
 // }
 
@@ -364,17 +373,24 @@ run simulate_switch for 8 but 14..14 steps
 //  State.network' = State.network and
 //  State.calls' = State.calls and
 //  State.last_answered' = State.last_answered and
-//  State.audio' = none and
+//  State.audio' = none and // Change #2
 //  no State.ringing'
 // }
 
 // Your description should have enough detail to allow somebody
 // to "undo" (or "reverse") your fix so we can then see the vulnerability
 // in your protocol as you describe it in comments above
+
 // DESCRIPTION: 
-// to undo the fix, comment out the above fixed predicates:
+// To undo the fix, comment out the above fixed predicates:
 // user_recv_pre, user_calls
-// uncomment the original predicates with the same name further above,
-// and run the no_bad_states check.
-// a counterexample will be found in the original predicates, 
-// whereas none will be found in the fixed predicates.
+// uncomment the original predicates with the same name further above, and run
+// the no_bad_states check.
+// A counterexample will be found in the original predicates, whereas none
+// will be found in the fixed predicates.
+//
+// The fix ensures Connect messages are only received when the user has
+// recently decided to call an address (State.last_called = m.source) and
+// clears the audio when another call is made (State.audio' = none).
+// This prevents audio from connecting to anyone not called and stops
+// any connected audio when another call is being made by the user.
